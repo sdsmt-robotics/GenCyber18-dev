@@ -30,7 +30,7 @@ class Robot:
         self.port.baudrate = baud
         self.port.port = self.location
         self.port.timeout = 1
-        self.port.dtr = 0
+        self.port.dtr = 1
         self.connected = False
         if self.location != None:
             self.port.open()
