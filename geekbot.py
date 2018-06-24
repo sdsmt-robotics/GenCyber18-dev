@@ -7,6 +7,7 @@ from collections import namedtuple
 
 robot_vid = 0x0403
 robot_pid = 0x6001
+robot_pid2 = 0x6015
 
 handshake  = 0x77
 end_flag   = 0x33
@@ -36,7 +37,7 @@ class Robot:
             self.port.open()
             wait(2)
             self.port.write(chr(handshake).encode())
-            wait(2)
+            wait(0.5)
             while self.port.read() != chr(0x77).encode():
                 print("Waiting for handshake")
                 #wait(0.5)
@@ -47,7 +48,7 @@ class Robot:
         port_list = serial.tools.list_ports.comports()
         for i in port_list:
             print(i.device)
-            if (i.vid == robot_vid) and (i.pid == robot_pid):
+            if (i.vid == robot_vid) and (i.pid == robot_pid or i.pid == robot_pid2):
                 print("Geekbot found:" + i.device)
                 return str(i.device)
         print("No Geekbot found!")
@@ -96,14 +97,14 @@ class Robot:
         if adjust == None:
             self.send_cmd(drive_flag, speed)
         else: 
-            self.send_cmd(left_flag, speed)
+            self.drive_left_wheel(speed)
             adjusted = speed+adjust
             if adjusted > 100:
-                self.send_cmd(right_flag, 100)
+                self.drive_right_wheel(100)
             elif adjusted < 0:
-                self.send_cmd(right_flag, 0)
+                self.drive_right_wheel(0)
             else:
-                self.send_cmd(right_flag, speed+adjust)
+                self.drive_right_wheel(adjusted)
         if seconds == None:
             return
         wait(seconds)
@@ -114,14 +115,14 @@ class Robot:
         if adjust == None:
             self.send_cmd(drive_flag, -speed)
         else: 
-            self.send_cmd(left_flag, -speed)
+            self.drive_left_wheel(-speed)
             adjusted = speed+adjust
             if   adjusted > 100:
-                self.send_cmd(right_flag, -100)
+                self.drive_right_wheel(-100)
             elif adjusted < 0:
-                self.send_cmd(right_flag, -0)
+                self.drive_right_wheel(0)
             else:
-                self.send_cmd(right_flag, -speed+adjust)
+                self.drive_right_wheel(-(adjusted))
         if seconds == None:
             return
         wait(seconds)
