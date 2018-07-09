@@ -4,20 +4,20 @@ from time import sleep as wait
 import serial
 import serial.tools.list_ports
 
-robot_vid = 0x0403
-robot_pid = 0x6001
-robot_pid2 = 0x6015
+ROBOT_VID = 0x0403
+ROBOT_PID = 0x6001
+ROBOT_PID2 = 0x6015
 
-handshake  = 0x77
-end_flag   = 0x33
+HANDSHAKE  = 0x77
+END_FLAG   = 0x33
 
-drive_flag = 0x45
-left_flag  = 0x36
-right_flag = 0x35
-lights_flag = 0x30
+DRIVE_FLAG = 0x45
+LEFT_FLAG  = 0x36
+RIGHT_FLAG = 0x35
+LIGHTS_FLAG = 0x30
 
-ir_read_flag = 0x27
-ir_pos_flag  = 0x28
+IR_READ_FLAG = 0x27
+IR_POS_FLAG  = 0x28
 
 class Robot:
 
@@ -35,7 +35,7 @@ class Robot:
         if self.location != None:
             self.port.open()
             wait(2)
-            self.port.write(chr(handshake).encode())
+            self.port.write(chr(HANDSHAKE).encode())
             wait(0.5)
             while self.port.read() != chr(0x77).encode():
                 print("Waiting for handshake")
@@ -47,7 +47,7 @@ class Robot:
         port_list = serial.tools.list_ports.comports()
         for i in port_list:
             print(i.device)
-            if (i.vid == robot_vid) and (i.pid == robot_pid or i.pid == robot_pid2):
+            if (i.vid == ROBOT_VID) and (i.pid == ROBOT_PID or i.pid == ROBOT_PID2):
                 print("Geekbot found:" + i.device)
                 return str(i.device)
         print("No Geekbot found!")
@@ -76,17 +76,17 @@ class Robot:
         self.port.write(self.pack_short(self.map_short(data)))
 
     def lights_on(self):
-        self.send_cmd(lights_flag, 0x01)
+        self.send_cmd(LIGHTS_FLAG, 0x01)
 
     def lights_off(self):
-        self.send_cmd(lights_flag, 0x00)
+        self.send_cmd(LIGHTS_FLAG, 0x00)
 
     def halt(self):
-        self.send_cmd(drive_flag, 0)
+        self.send_cmd(DRIVE_FLAG, 0)
 
     def turn(self, speed, seconds=None):
-        self.send_cmd(left_flag, -speed)
-        self.send_cmd(right_flag, speed)
+        self.send_cmd(LEFT_FLAG, -speed)
+        self.send_cmd(RIGHT_FLAG, speed)
         if seconds != None:
             wait(seconds)
             self.halt()
@@ -94,7 +94,7 @@ class Robot:
 
     def drive_forward(self, speed, adjust=None, seconds=None):
         if adjust == None:
-            self.send_cmd(drive_flag, speed)
+            self.send_cmd(DRIVE_FLAG, speed)
         else:
             self.drive_left_wheel(speed)
             adjusted = speed+adjust
@@ -112,7 +112,7 @@ class Robot:
 
     def drive_backward(self, speed, adjust=None, seconds=None):
         if adjust == None:
-            self.send_cmd(drive_flag, -speed)
+            self.send_cmd(DRIVE_FLAG, -speed)
         else:
             self.drive_left_wheel(-speed)
             adjusted = speed+adjust
@@ -128,16 +128,16 @@ class Robot:
         self.halt()
 
     def drive_right_wheel(self, speed):
-        self.send_cmd(right_flag, -speed)
+        self.send_cmd(RIGHT_FLAG, -speed)
 
     def drive_left_wheel(self, speed):
-        self.send_cmd(left_flag, -speed)
+        self.send_cmd(LEFT_FLAG, -speed)
 
     def get_ir_distance(self):
-        self.send_cmd(ir_read_flag, 1)
+        self.send_cmd(IR_READ_FLAG, 1)
         data = self.port.read(2)
         dist = unpack(">H", data)
         return dist[0]
 
     def set_ir_position(self, angle):
-        self.send_cmd(ir_pos_flag, angle)
+        self.send_cmd(IR_POS_FLAG, angle)
