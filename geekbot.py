@@ -1,3 +1,4 @@
+from __future__ import print_function, division
 from struct import pack, unpack
 from time import sleep as wait
 
@@ -71,8 +72,22 @@ class Robot(object):
         self.port.close()
         self.connected = False
 
-    def map_short(self, num): #where num is a num 0 - 100
-        temp = (num * 32767)/100
+    @staticmethod
+    def map_short(num):
+        """
+            Maps the given number, within 0 and 100, to an int16_t.
+
+            Example:
+
+            >>> from geekbot import Robot
+            >>> Robot.map_short(100)
+            32767
+            >>> Robot.map_short(0)
+            0
+            >>> Robot.map_short(-100)
+            -32767
+        """
+        temp = (num * 32767) // 100
         if temp > 32767:
             return 32767
         elif temp < -32767:
