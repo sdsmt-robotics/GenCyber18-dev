@@ -4,7 +4,7 @@ import geekbot
 import time
 
 geek = geekbot.Robot(57600)
-if geek.is_connected() == False:
+if geek.connected is False:
     exit()
 
 # Check lights
@@ -48,6 +48,3 @@ time.sleep(.5)
 geek.drive_forward(80)
 time.sleep(1)
 geek.halt()
-
-
-

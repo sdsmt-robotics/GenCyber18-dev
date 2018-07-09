@@ -63,12 +63,13 @@ class Robot(object):
         print("No Geekbot found!")
         return None
 
-    def is_connected(self):
-        return self.connected
-
     def shutdown(self):
+        """
+            Stops all motion and disconnects from the Geekbot.
+        """
         self.halt()
         self.port.close()
+        self.connected = False
 
     def map_short(self, num): #where num is a num 0 - 100
         temp = (num * 32767)/100
