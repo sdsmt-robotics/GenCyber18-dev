@@ -19,11 +19,17 @@ LIGHTS_FLAG = 0x30
 IR_READ_FLAG = 0x27
 IR_POS_FLAG  = 0x28
 
-class Robot:
-
+class Robot(object):
+    """
+        A Robot class to interact with a Trossen Robotics Geekbot.
+    """
     def __init__(self, baud, file=None):
+        """
+            Connect and initialize a Geekbot. Connects to a Geekbot via serial using the given
+            baudrate. If the serial port is not given, attempt to find it.
+        """
         self.port = serial.Serial()
-        if file != None:
+        if file is not None:
             self.location = file
         else:
             self.location = self.find_robot()
@@ -32,23 +38,27 @@ class Robot:
         self.port.timeout = 1
         self.port.dtr = 1
         self.connected = False
-        if self.location != None:
+        if self.location is not None:
             self.port.open()
             wait(2)
             self.port.write(chr(HANDSHAKE).encode())
             wait(0.5)
-            while self.port.read() != chr(0x77).encode():
+            while self.port.read() != chr(HANDSHAKE).encode():
                 print("Waiting for handshake")
-                #wait(0.5)
+                # wait(0.5)
             self.connected = True
 
-    def find_robot(self):
+    @staticmethod
+    def find_robot():
+        """
+            Attempts to find a serial port with a Geekbot connected.
+        """
         print("Finding Geekbot's USB port...")
         port_list = serial.tools.list_ports.comports()
         for i in port_list:
             print(i.device)
             if (i.vid == ROBOT_VID) and (i.pid == ROBOT_PID or i.pid == ROBOT_PID2):
-                print("Geekbot found:" + i.device)
+                print("Geekbot found: " + i.device)
                 return str(i.device)
         print("No Geekbot found!")
         return None
