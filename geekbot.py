@@ -94,7 +94,11 @@ class Robot(object):
             return -32767
         return int(temp)
 
-    def pack_short(self,num):
+    @staticmethod
+    def pack_short(num):
+        """
+            Packs the given int16_t into a struct for use with a serial object.
+        """
         return pack("h", int(num))
 
     def send_cmd(self,flag, data):
