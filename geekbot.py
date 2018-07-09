@@ -28,6 +28,9 @@ class Robot(object):
         """
             Connect and initialize a Geekbot. Connects to a Geekbot via serial using the given
             baudrate. If the serial port is not given, attempt to find it.
+
+            TODO: What is the Arduino code the Geekbot is running? Is it custom? Default provided
+            by Trossen? This needs to be documented.
         """
         self.port = serial.Serial()
         if file is not None:
@@ -101,7 +104,31 @@ class Robot(object):
         """
         return pack("h", int(num))
 
-    def send_cmd(self,flag, data):
+    def send_cmd(self, flag, data):
+        """
+            Send a generic command to the connected Geekbot.
+
+            data - The command value to pass to the Geekbot. Specified by each command flag.
+            flag - The command flag to send. One of the following:
+
+                DRIVE_FLAG   - Drive both wheels with equal direction and speed
+                LEFT_FLAG    - Control the left wheel
+                RIGHT_FLAG   - Control the right wheel
+
+                data - An integer value between -100 and 100 whose sign indicates direction, and
+                        whose magnitude indicates speed.
+
+                LIGHTS_FLAG  - Control the robot's LED
+                data - True: Light on. False: Light off.
+
+                IR_POS_FLAG  - Set the angle of the IR distance sensor
+                TODO: Verify
+                data - An angle between -360 and 360. Angle is measured from the front of the robot,
+                        angles moving right, and negative angles moving left.
+                TODO: Verify that 0x1 is a placeholder and doesn't have any special meaning.
+                IR_READ_FLAG - Request an update from the IR distance sensor
+                data - A placeholder (0x1) should be given.
+        """
         self.port.write(chr(flag).encode())
         self.port.write(self.pack_short(self.map_short(data)))
 
