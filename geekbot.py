@@ -102,6 +102,7 @@ class Robot(object):
         """
             Packs the given int16_t into a struct for use with a serial object.
         """
+        # An int16_t in native byte order (little-endian).
         return pack("h", int(num))
 
     def send_cmd(self, flag, data):
@@ -133,68 +134,82 @@ class Robot(object):
         self.port.write(self.pack_short(self.map_short(data)))
 
     def lights_on(self):
+        """Turn on the Robot's LED"""
         self.send_cmd(LIGHTS_FLAG, 0x01)
 
     def lights_off(self):
+        """Turn off the Robot's LED"""
         self.send_cmd(LIGHTS_FLAG, 0x00)
 
     def halt(self):
+        """Stop the Robot in its tracks."""
         self.send_cmd(DRIVE_FLAG, 0)
 
     def turn(self, speed, seconds=None):
+        """
+            Turns the Robot.
+
+            TODO: Make note of special Robotics terminology for this type of locomotion.
+
+            speed - The speed at which to turn the robot. May be between -100 and 100.
+            seconds - The amount of time the turn should take. May be fractional.
+        """
         self.send_cmd(LEFT_FLAG, -speed)
         self.send_cmd(RIGHT_FLAG, speed)
-        if seconds != None:
+
+        if seconds is not None:
             wait(seconds)
             self.halt()
-        return
 
-    def drive_forward(self, speed, adjust=None, seconds=None):
-        if adjust == None:
-            self.send_cmd(DRIVE_FLAG, speed)
-        else:
-            self.drive_left_wheel(speed)
-            adjusted = speed+adjust
-            if adjusted > 100:
-                self.drive_right_wheel(100)
-            elif adjusted < 0:
-                self.drive_right_wheel(0)
-            else:
-                self.drive_right_wheel(adjusted)
-        if seconds == None:
-            return
-        wait(seconds)
-        self.halt()
+    def drive_forward(self, speed, adjust=0, seconds=None):
+        """
+            Drives the Robot forward.
 
+            TODO: Make note of special Robotics terminology for this type of locomotion.
 
-    def drive_backward(self, speed, adjust=None, seconds=None):
-        if adjust == None:
-            self.send_cmd(DRIVE_FLAG, -speed)
-        else:
-            self.drive_left_wheel(-speed)
-            adjusted = speed+adjust
-            if   adjusted > 100:
-                self.drive_right_wheel(-100)
-            elif adjusted < 0:
-                self.drive_right_wheel(0)
-            else:
-                self.drive_right_wheel(-(adjusted))
-        if seconds == None:
-            return
-        wait(seconds)
-        self.halt()
+            speed   - The speed at which the Robot should drive. An integer between -100 and 100.
+            adjust  - The speed by which the right wheel should differ from the left wheel. Optional
+            seconds - The amount of time you wish the Robot to drive forward. Optional. If not
+                      given, the Robot will drive forward until instructed otherwise.
+        """
+        self.drive_left_wheel(speed)
+        # self.send_cmd() already handles range overflows, so just add the adjustment.
+        self.drive_right_wheel(speed + adjust)
+
+        if seconds is not None:
+            wait(seconds)
+            self.halt()
+
+    def drive_backward(self, speed, adjust=0, seconds=None):
+        """
+            Drives the Robot backward.
+
+            TODO: Make note of special Robotics terminology for this type of locomotion.
+
+            speed   - The speed at which the Robot should drive. An integer between -100 and 100.
+            adjust  - The speed by which the right wheel should differ from the left wheel. Optional
+            seconds - The amount of time you wish the Robot to drive backward. Optional. If not
+                      given, the Robot will drive backward until instructed otherwise.
+        """
+        # Negating both speed and adjust is equivalent to adding, and then negating the result.
+        self.drive_forward(-speed, -adjust, seconds)
 
     def drive_right_wheel(self, speed):
+        """Drives the right wheel indefinitely at the given speed."""
         self.send_cmd(RIGHT_FLAG, -speed)
 
     def drive_left_wheel(self, speed):
+        """Drives the left wheel indefinitely at the given speed."""
         self.send_cmd(LEFT_FLAG, -speed)
 
     def get_ir_distance(self):
+        """Gets the distance measured by the Robot's IR sensor."""
         self.send_cmd(IR_READ_FLAG, 1)
         data = self.port.read(2)
+        # A uint16_t, in big-endian byte order.
         dist = unpack(">H", data)
         return dist[0]
 
     def set_ir_position(self, angle):
+        """Sets the angle (in degrees) the Robot's IR sensor is pointing."""
         self.send_cmd(IR_POS_FLAG, angle)
